@@ -1,0 +1,34 @@
+
+{% block title %}Add a Book{% endblock %}
+
+{% block content %}
+<h1>Add a Book</h1>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="title">Title:</label>
+        <input type="text" class="form-control" id="title" name="title" required>
+    </div>
+    <div class="form-group">
+        <label for="author">Author:</label>
+        <input type="text" class="form-control" id="author" name="author" required>
+    </div>
+    <div class="form-group">
+        <label for="catIds">Category IDs:</label>
+        <input type="text" class="form-control" id="catIds" name="catIds" required>
+    </div>
+    <div class="form-group">
+        <label for="coverpage">Cover Page Image:</label>
+        <input type="file" class="form-control-file" id="coverpage" name="coverpage" required>
+    </div>
+    <div class="form-group">
+        <label for="link">External Link:</label>
+        <input type="text" class="form-control" id="link" name="link" required>
+    </div>
+    <div class="form-group">
+        <label for="intro">Introduction:</label>
+        <textarea class="form-control" id="intro" name="intro" rows="3"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Add Book</button>
+</form>
+{% endblock %}

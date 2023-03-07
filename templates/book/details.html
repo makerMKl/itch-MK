@@ -1,0 +1,108 @@
+{% block content %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<h1>{{ book.title }}</h1>
+<p>Author: {{ book.author }}</p>
+<p>Description: {{ book.description }}</p>
+<p>Published date: {{ book.published_date }}</p>
+<h2>Comments</h2>
+  {% if comments %}
+    {% for comment in comments %}
+<div class="comment">
+    <p>{{ comment.content }}</p>
+    <p>By {{ comment.author }} on {{ comment.created_time }}</p>
+    {% if comment.reply_to %}
+    <p>Reply to {{ comment.reply_to.author }}:</p>
+    <p>{{ comment.reply_to.content }}</p>
+    {% endif %}
+</div>
+    {% endfor %}
+  {% else %}
+<p>No comments yet.</p>
+  {% endif %}
+<h2>Add Comment</h2>
+<form id="comment-form">
+    {% csrf_token %}
+    <input type="hidden" name="book_id" value="{{ book.id }}">
+    <input type="hidden" name="reply_to_id" id="reply-to-id">
+    <div class="form-group">
+        <label for="content">Content:</label>
+        <textarea id="content" name="content" class="form-control" rows="3" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+  {% if messages %}
+    {% for message in messages %}
+<div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+    {% endfor %}
+  {% endif %}
+{% endblock %}
+
+{% block script %}
+<script>
+$(function() {
+  // Submit form using AJAX
+  $('#comment-form').submit(function(event) {
+    event.preventDefault();
+    $.ajax({
+      type: "POST",
+      url: "{% url 'post_comment' %}",
+      data: $(this).serialize(),
+      success: function(response) {
+        if (response['success']) {
+          // Add new comment to list
+          var content = $('#content').val();
+          var author = '{{ request.user }}';
+          var createdTime = new Date().toLocaleString();
+          var commentHtml = `
+          <div class="comment">
+            <p>${content}</p>
+            <p>By ${author} on ${createdTime}</p>
+          </div>
+          `;
+          $('#comments').prepend(commentHtml);
+          $('#content').val('');
+
+          // Display success message
+          var messageHtml = `
+          <div class="alert alert-success alert-dismissible fade show" role="alert">
+            ${response['message']}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          `;
+          $('#comment-form').before(messageHtml);
+        } else {
+          // Display error message
+          var messageHtml = `
+          <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            ${response['message']}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          `;
+          $('#comment-form').before(messageHtml);
+        }
+      },
+      error: function (xhr, status, error) {
+        // Display error message
+        var messageHtml = `
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          An error occurred while processing your request. Please try again later.
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        `;
+        $('#comment-form').before(messageHtml);
+      }
+    });
+  });
+
+  // Update reply-to-id field when reply link is clicked
+  $('.reply-link').click(function(event) {
+    event.preventDefault();
+    var commentId = $(this).data('comment-id');
+    $('#reply-to-id').val(commentId);
+  });
+});
+</script>
+{% endblock %}
